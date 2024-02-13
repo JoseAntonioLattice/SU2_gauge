@@ -11,7 +11,7 @@ contains
 
 
   subroutine cold_start(U)
-    use arrays, only : link_variable
+    use data_types_observables, only : link_variable
     type(link_variable), intent(out), dimension(:,:,:,:) :: U
     integer(i4) :: L,x,y,z,w,mu
     !Cold start

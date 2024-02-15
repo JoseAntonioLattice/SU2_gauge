@@ -6,7 +6,7 @@ module dynamics
   implicit none
 
   private !:: dp, i4, link_variable
-  public :: sweeps, create_update, sgn, drand, take_measurements, dagger, tr, gauge_transformation
+  public :: sweeps, create_update, sgn, drand, take_measurements, dagger, tr, gauge_transformation, DS
 
 contains
 
@@ -15,22 +15,48 @@ contains
     integer(i4), intent(in)  :: L
     type(complex_2x2_matrix) :: Up
     integer(i4) :: x, y, z, w, mu
+    real(dp) :: Delta_S
 
     do x = 1, L
        do y = 1, L
-          !do z = 1, L
-             !do w = 1, L
-                do mu = 1, 2
-                   call create_update(Up)
-                   U(x,y)%link(mu) = Up
-                   !call metropolis(DS,U(x,y,z,w)%link(mu),Up)
-                end do
-             !end do
-          !end do
+          do mu = 1, 2
+             call create_update(Up)
+             Delta_S = DS(U,mu,Up,x,y)
+             call glauber(Delta_S,U(x,y)%link(mu)%matrix,Up%matrix)
+          end do
        end do
     end do
   end subroutine sweeps
 
+  subroutine metropolis(Delta_S,U,Up)
+    real(dp), intent(in) :: Delta_S
+    complex(dp), dimension(:,:), intent(inout) :: U
+    complex(dp), dimension(:,:), intent(in) :: Up
+    real(dp) :: r
+
+    call random_number(r)
+    if (Delta_S <= 0.0_dp)then
+       U = Up
+    elseif( (Delta_S > 0.0_dp) .and. (exp(-Delta_S) > r) )then
+       U = Up
+    end if
+    
+  end subroutine metropolis
+
+
+ subroutine glauber(Delta_S,U,Up)
+    real(dp), intent(in) :: Delta_S
+    complex(dp), dimension(:,:), intent(inout) :: U
+    complex(dp), dimension(:,:), intent(in) :: Up
+    real(dp) :: r
+
+    call random_number(r)
+    if ( 1/(exp(Delta_S) + 1.0_dp) > r)then
+       U = Up
+    end if
+    
+  end subroutine glauber
+  
   subroutine create_update(Up)
     type(complex_2x2_matrix), intent(out) :: Up
     real(dp) :: x0, x1, x2, x3
@@ -57,37 +83,35 @@ contains
   end subroutine create_update
 
 
-  subroutine take_measurements(U)
+  subroutine take_measurements(U,action)
     use parameters, only : L
     
 
     type(link_variable), dimension(:,:), intent(in) :: U
     integer(i4) :: x,y!,z,w,mu
     complex(dp), dimension(2,2), parameter :: one = reshape([1.0_dp,0.0_dp,0.0_dp,1.0_dp], [2,2])
-    real(dp) :: action
-
+    real(dp), intent(out) :: action
     action = 0.0_dp
     do x = 1, L
        do y = 1, L
-          action = action - real(tr(plaquette(U,x,y)))
+          action = action - real(tr(plaquette(U,x,y,1,2)))
        end do
     end do
 
     action = 2.0_dp*L**2 + action
-    print*, action
 
   end subroutine take_measurements
 
-  function plaquette(U,x,y)
+  function plaquette(U,x,y,mu,nu)
     use periodic_boundary_contidions_mod, only : ip
     
     type(link_variable), dimension(:,:), intent(in) :: U
-    integer(i4), intent(in) :: x,y 
+    integer(i4), intent(in) :: x,y , mu, nu
     complex(dp), dimension(2,2) :: plaquette, prod1, prod2
 
     
-    prod1 = matmul(U(x,y)%link(1)%matrix,U(ip(x),y)%link(2)%matrix) 
-    prod2 = matmul(dagger(U(x,ip(y))%link(1)%matrix),dagger(U(x,y)%link(2)%matrix))
+    prod1 = matmul(U(x,y)%link(mu)%matrix,U(ip(x),y)%link(nu)%matrix) 
+    prod2 = matmul(dagger(U(x,ip(y))%link(mu)%matrix),dagger(U(x,y)%link(nu)%matrix))
     plaquette = matmul(prod1,prod2)
   end function plaquette
 
@@ -160,5 +184,42 @@ contains
        y = 0
     end if
   end function sgn
+
+
+  pure function staples(U,x,y,mu,nu)
+
+    use periodic_boundary_contidions_mod, only : ip, im
+    
+    type(link_variable), dimension(:,:), intent(in) :: U
+    integer(i4), intent(in) :: x, y, mu, nu
+    complex(dp), dimension(2,2) :: staples, prod1, prod2, prod3, prod4
+
+    prod1 = matmul(U(ip(x),y)%link(nu)%matrix,dagger(U(x,ip(y))%link(mu)%matrix))
+    prod2 = matmul(prod1,dagger(U(x,y)%link(nu)%matrix))
+
+    prod3 = matmul(dagger(U(ip(x),im(y))%link(nu)%matrix),&
+                   dagger(U(x,im(y))%link(mu)%matrix))
+    prod4 = matmul(prod3,U(x,im(y))%link(nu)%matrix)
+    
+    staples = prod2 + prod4
+    
+  end function staples
+
+  pure function DS(U,mu,Up,x,y)
+    type(link_variable), dimension(:,:), intent(in) :: U
+    integer(i4), intent(in) :: x, y, mu
+    integer(i4) :: nu
+    type(complex_2x2_matrix), intent(in) :: Up
+    real(dp) :: DS
+    
+    !call create_update(Up)
+
+    if(mu == 1) nu = 2
+    if(mu == 2) nu = 1
+    
+    DS = -real(tr(matmul(Up%matrix - U(x,y)%link(mu)%matrix,staples(U,x,y,mu,nu))))
+    
+  end function DS
+  
 
 end module dynamics

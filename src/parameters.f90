@@ -7,10 +7,10 @@ module parameters
   private :: dp, i4
   
   integer(i4) :: L ! Lattice length size
+  integer(i4) :: N ! Dimension of gauge group
 
 
-
-  namelist /input_parameters/ L
+  namelist /input_parameters/ L,N
   
 contains
 

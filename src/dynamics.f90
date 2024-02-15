@@ -10,18 +10,20 @@ module dynamics
 
 contains
 
-  subroutine sweeps(U,L)
+  subroutine sweeps(U,L,beta,N)
     type(link_variable), intent(inout), dimension(:,:) :: U
     integer(i4), intent(in)  :: L
+    integer(i4), intent(in) :: N
+    real(dp), intent(in) :: beta
     type(complex_2x2_matrix) :: Up
-    integer(i4) :: x, y, z, w, mu
+    integer(i4) :: x, y, mu
     real(dp) :: Delta_S
 
     do x = 1, L
        do y = 1, L
           do mu = 1, 2
              call create_update(Up)
-             Delta_S = DS(U,mu,Up,x,y)
+             Delta_S = (beta/N) * DS(U,mu,Up,x,y)
              call glauber(Delta_S,U(x,y)%link(mu)%matrix,Up%matrix)
           end do
        end do
@@ -59,9 +61,7 @@ contains
   
   subroutine create_update(Up)
     type(complex_2x2_matrix), intent(out) :: Up
-    real(dp) :: x0, x1, x2, x3
     complex(dp) :: a, b
-    real(dp), parameter :: eps = 0.5
     real(dp), dimension(4) :: r
     real(dp) :: norm_r
 
@@ -83,22 +83,22 @@ contains
   end subroutine create_update
 
 
-  subroutine take_measurements(U,action)
-    use parameters, only : L
+  subroutine take_measurements(U,L,beta,N,d,action)
     
-
     type(link_variable), dimension(:,:), intent(in) :: U
-    integer(i4) :: x,y!,z,w,mu
-    complex(dp), dimension(2,2), parameter :: one = reshape([1.0_dp,0.0_dp,0.0_dp,1.0_dp], [2,2])
+    integer(i4), intent(in) :: N,d,L
+    real(dp), intent(in) :: beta
+    integer(i4) :: x,y
+    
     real(dp), intent(out) :: action
     action = 0.0_dp
     do x = 1, L
        do y = 1, L
-          action = action - real(tr(plaquette(U,x,y,1,2)))
+          action = action + real(tr(plaquette(U,x,y,1,2)))
        end do
     end do
 
-    action = 2.0_dp*L**2 + action
+    action =  action/(N*L**d)
 
   end subroutine take_measurements
 

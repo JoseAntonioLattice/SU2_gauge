@@ -5,8 +5,10 @@ module arrays
   implicit none
   
   type(link_variable), allocatable, dimension(:,:) :: U
-
+  real(dp), allocatable, dimension(:) :: temperature
+  
+  
   private
-  public :: U
+  public :: U, temperature
   
 end module arrays

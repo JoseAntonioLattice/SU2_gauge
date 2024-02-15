@@ -10,8 +10,9 @@ program main
   implicit none
 
   type(complex_2x2_matrix) :: Up, Uold 
-  integer :: i
-  real(dp) :: S
+  integer :: i, itemp
+  real(dp) :: S, suma_S
+  real(dp), allocatable, dimension(:) :: beta
   
   !Read input parameters
   call read_input_parameters()
@@ -20,41 +21,31 @@ program main
   allocate(U(L,L))
   call set_periodic_bounds(L)
 
+  beta = [(i*0.1, i = 0, 100)]
 
-  open(unit = 100, file = 'action_glauber.dat')
-  
-  !Initialie variables
-  call cold_start(U)
-  call take_measurements(U,S)
-  write(100,*) S
 
-  !Thermalization
-  do i = 1, 1000
-     call sweeps(U,L)
-     call take_measurements(U,S)
-     write(100,*) S
+  open(unit = 100, file = 'action.dat')
+
+  do itemp = 1, size(beta)
+     suma_S = 0.0_dp
+     !beta = 1/temperature(itemp)
+     !Initialie variables
+     call cold_start(U)
+     
+     !Thermalization
+     do i = 1, 1000
+        call sweeps(U,L,beta(itemp),N)
+     end do
+
+     do i = 1, 1000
+        call sweeps(U,L,beta(itemp),2)
+        if( mod(i,10) == 0)then
+           call take_measurements(U,L,beta(itemp),N,2,S)
+           suma_s = suma_s + S
+        end if
+     end do
+     write(100,*) beta(itemp), suma_S/100
   end do
-
   
-  ! Visualize
-  !print*, U(L,L,L,L)%link(4)
-
-  !print*, "Create update"
-  !call create_update(Up)
-
-  !Uold = U(L,L)%link(2)
-  !U(L,L)%link(2) = Up
   
-  !print*, "Action of a SU(2) 2d Configuration before gauge transformation:"
-  !call sweeps(U,L)
-  !call take_measurements(U)
-
-  !U(L,L)%link(2) = Uold
-
-  !print*, DS(U,2,Up,L,L)
-  
-  !print*, "Action of a SU(2) 2d Configuration after gauge transformation: "
-  !call gauge_transformation(U)
-  !call take_measurements(U) 
-
 end program main

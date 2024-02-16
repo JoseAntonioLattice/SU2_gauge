@@ -21,10 +21,10 @@ program main
   allocate(U(L,L))
   call set_periodic_bounds(L)
 
-  beta = [(i*0.1, i = 0, 100)]
+  !beta = [(i*0.1, i = 1, 100)]
+  beta = (/1,2,3,4,5/)
 
-
-  open(unit = 100, file = 'action.dat')
+  open(unit = 100, file = 'action_heatbath.dat')
 
   do itemp = 1, size(beta)
      suma_S = 0.0_dp
@@ -33,10 +33,12 @@ program main
      call cold_start(U)
      
      !Thermalization
-     do i = 1, 1000
+     print*,"Initializing thermalization at beta = ", beta(itemp)
+     do i = 1, 100
+        print*, i
         call sweeps(U,L,beta(itemp),N)
      end do
-
+     print*, "Thermalization done at beta = ", beta(itemp)
      do i = 1, 1000
         call sweeps(U,L,beta(itemp),2)
         if( mod(i,10) == 0)then

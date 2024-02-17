@@ -9,11 +9,10 @@ program main
   use data_types_observables
   implicit none
 
-  type(complex_2x2_matrix) :: Up, Uold 
   integer :: i, itemp
   real(dp) :: S, suma_S
   real(dp), allocatable, dimension(:) :: beta
-  
+
   !Read input parameters
   call read_input_parameters()
 
@@ -21,24 +20,24 @@ program main
   allocate(U(L,L))
   call set_periodic_bounds(L)
 
-  !beta = [(i*0.1, i = 1, 100)]
-  beta = (/1,2,3,4,5/)
+  beta = [(i*0.1, i = 1, 100)]
+  !beta = (/1,2,3,4,5/)
 
-  open(unit = 100, file = 'action_heatbath.dat')
+  open(unit = 100, file = 'action_metropolis.dat')
 
   do itemp = 1, size(beta)
      suma_S = 0.0_dp
      !beta = 1/temperature(itemp)
      !Initialie variables
      call cold_start(U)
-     
+
      !Thermalization
-     print*,"Initializing thermalization at beta = ", beta(itemp)
+     !print*,"Initializing thermalization at beta = ", beta(itemp)
      do i = 1, 100
-        print*, i
+        !print*, i
         call sweeps(U,L,beta(itemp),N)
      end do
-     print*, "Thermalization done at beta = ", beta(itemp)
+     !print*, "Thermalization done at beta = ", beta(itemp)
      do i = 1, 1000
         call sweeps(U,L,beta(itemp),2)
         if( mod(i,10) == 0)then
@@ -48,6 +47,6 @@ program main
      end do
      write(100,*) beta(itemp), suma_S/100
   end do
-  
-  
+
+
 end program main

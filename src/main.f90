@@ -23,7 +23,7 @@ program main
   beta = [(i*0.1, i = 1, 100)]
   !beta = (/1,2,3,4,5/)
 
-  open(unit = 100, file = 'action_metropolis.dat')
+  open(unit = 100, file = 'action_heatbath.dat')
 
   do itemp = 1, size(beta)
      suma_S = 0.0_dp
@@ -33,7 +33,7 @@ program main
 
      !Thermalization
      !print*,"Initializing thermalization at beta = ", beta(itemp)
-     do i = 1, 100
+     do i = 1, 1000
         !print*, i
         call sweeps(U,L,beta(itemp),N)
      end do

@@ -1,17 +1,21 @@
 module local_update_algorithms
 
+  use data_types_observables
+  use matrix_operations
+  use iso_fortran_env, only : dp => real64, i4 => int32
+
 contains
 
   subroutine metropolis(Delta_S,U,Up)
     real(dp), intent(in) :: Delta_S
     complex(dp), dimension(:,:), intent(inout) :: U
     complex(dp), dimension(:,:), intent(in) :: Up
-    real(dp) :: r
+    real(dp) :: r, prob
+
+    prob = min(1.0_dp,exp(-Delta_S))
 
     call random_number(r)
-    if (Delta_S <= 0.0_dp)then
-       U = Up
-    elseif( (Delta_S > 0.0_dp) .and. (exp(-Delta_S) > r) )then
+    if( prob >= r )then
        U = Up
     end if
 
@@ -36,32 +40,32 @@ contains
     type(link_variable), dimension(:,:), intent(inout) :: U
     integer(i4), intent(in) :: x, y, mu
     real(dp), intent(in) :: beta
-    complex(dp), dimension(2,2) :: A, V, XX
+    type(complex_2x2_matrix) :: A, V, XX
     complex(dp) :: c_a, b
     real(dp) :: det_A
     real(dp) :: x0, x_vec(3), norm_x
     real(dp) :: r(3), s
     real(dp) :: lambdasq
-    real(dp), parameter :: pi = acos(-1.0_dp)
-    integer :: i, j
 
     A = staples(U,x,y,mu)
 
-    det_A = sqrt(det(A))
+    det_A = det(A)
     if (det_A <= 0.0_dp)then
        call create_update(U(x,y)%link(mu))
        return
     end if
 
-    V = A/det_A
+    det_A = sqrt(det_A)
+    V%matrix = A%matrix/det_A
 
     call generate_lambdasq(det_A,beta,lambdasq,s)
 
     do while ( s**2 > 1.0_dp - lambdasq)
-       call generate_lambdasq(det_A,beta,lambdasq,s)
+       !call generate_lambdasq(det_A,beta,lambdasq,s)
+        call random_number(s)
     end do
 
-    x0 = 1 - 2*lambdasq
+    x0 = 1.0_dp - 2*lambdasq
     norm_x = sqrt(1.0_dp - x0**2)
 
     call random_number(r)
@@ -75,12 +79,12 @@ contains
     c_a = cmplx(x0,x_vec(1),dp)
     b = cmplx(x_vec(2),x_vec(3),dp)
 
-    XX(1,1) = c_a
-    XX(1,2) = b
-    XX(2,1) = -conjg(b)
-    XX(2,2) =  conjg(c_a)
+    XX%matrix(1,1) = c_a
+    XX%matrix(1,2) = b
+    XX%matrix(2,1) = -conjg(b)
+    XX%matrix(2,2) =  conjg(c_a)
 
-    U(x,y)%link(mu)%matrix = matmul(XX,dagger(V))
+    U(x,y)%link(mu) = XX * dagger(V)
 
   end subroutine heatbath
 
@@ -101,8 +105,7 @@ contains
     type(complex_2x2_matrix), intent(out) :: Up
     complex(dp) :: a, b
     real(dp), dimension(4) :: r
-    real(dp) :: norm_r
-    real(dp), parameter :: eps = 0.5_dp
+    !real(dp), parameter :: eps = 0.01_dp
 
     call random_number(r)
     r = r - 0.5_dp
@@ -118,57 +121,38 @@ contains
 
   end subroutine create_update
 
-    pure function staples(U,x,y,mu)
-
+  pure function staples(U,x,y,mu) result(A)
     use periodic_boundary_contidions_mod, only : ip, im
+    use parameters, only : d
 
     type(link_variable), dimension(:,:), intent(in) :: U
     integer(i4), intent(in) :: x, y, mu
     integer(i4) :: nu
-    complex(dp), dimension(2,2) :: staples, prod1, prod2, prod3, prod4
+    type(complex_2x2_matrix) :: A
 
-    !staples = 0.0_dp
-    !do nu = 1, 2
-    !   if( mu .ne. nu)then
-    if(mu == 1) nu = 2
-    if(mu == 2) nu = 1
-          prod1 = matmul(U(ip(x),y)%link(nu)%matrix,dagger(U(x,ip(y))%link(mu)%matrix))
-          prod2 = matmul(prod1,dagger(U(x,y)%link(nu)%matrix))
-
-          prod3 = matmul(dagger(U(ip(x),im(y))%link(nu)%matrix),&
-                         dagger(U(x,im(y))%link(mu)%matrix))
-          prod4 = matmul(prod3,U(x,im(y))%link(nu)%matrix)
-
-          staples = prod2 + prod4! + staples
-    !   end if
-    !end do
-
+    A%matrix = 0.0_dp
+    do nu = 1, d
+      if (mu .ne. nu)then
+        A =        U(x,   y )%link(nu)  * U(x,ip(y))%link(mu) * dagger(U(ip(x),   y )%link(nu))  +  &
+            dagger(U(x,im(y))%link(nu)) * U(x,im(y))%link(mu) *        U(ip(x),im(y))%link(nu) + A
+      end if
+    end do
   end function staples
 
   function DS(U,mu,Up,x,y)
     type(link_variable), dimension(:,:), intent(in) :: U
     integer(i4), intent(in) :: x, y, mu
-    integer(i4) :: nu
     type(complex_2x2_matrix), intent(out) :: Up
     real(dp) :: DS
 
     call create_update(Up)
 
-    DS = -real(tr(matmul(Up%matrix - U(x,y)%link(mu)%matrix,staples(U,x,y,mu))))
+    !Up = Up * U(x,y)%link(mu)
+
+    DS = - real( tr( (Up - U(x,y)%link(mu)) * dagger(staples(U,x,y,mu)) ),dp )
 
   end function DS
 
- function plaquette(U,x,y,mu,nu)
-    use periodic_boundary_contidions_mod, only : ip
-
-    type(link_variable), dimension(:,:), intent(in) :: U
-    integer(i4), intent(in) :: x,y , mu, nu
-    complex(dp), dimension(2,2) :: plaquette, prod1, prod2
-
-    prod1 = matmul(U(x,y)%link(mu)%matrix,U(ip(x),y)%link(nu)%matrix)
-    prod2 = matmul(dagger(U(x,ip(y))%link(mu)%matrix),dagger(U(x,y)%link(nu)%matrix))
-    plaquette = matmul(prod1,prod2)
-  end function plaquette
 
 
 end module local_update_algorithms

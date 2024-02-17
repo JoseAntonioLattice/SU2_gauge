@@ -7,45 +7,48 @@ program main
   use starts
   use dynamics
   use data_types_observables
+  use statistics
   implicit none
 
   integer :: i, itemp
-  real(dp) :: S, suma_S
   real(dp), allocatable, dimension(:) :: beta
+  type observable
+    real(dp), allocatable :: array(:)
+    real(dp) :: avr
+    real(dp) :: err
+  end type observable
+  type(observable):: S
 
   !Read input parameters
   call read_input_parameters()
 
   !Allocate variables
   allocate(U(L,L))
+  allocate(S%array(N_measurements))
   call set_periodic_bounds(L)
 
-  beta = [(i*0.1, i = 1, 100)]
-  !beta = (/1,2,3,4,5/)
+  beta = [(i*0.1_dp, i = 1, 100)]
 
-  open(unit = 100, file = 'action_heatbath.dat')
+  open(unit = 100, file = 'data/action_'//trim(algorithm)//'.dat')
 
   do itemp = 1, size(beta)
-     suma_S = 0.0_dp
-     !beta = 1/temperature(itemp)
      !Initialie variables
      call cold_start(U)
 
      !Thermalization
-     !print*,"Initializing thermalization at beta = ", beta(itemp)
-     do i = 1, 1000
-        !print*, i
-        call sweeps(U,L,beta(itemp),N)
+     do i = 1, N_thermalization
+        call sweeps(U,L,beta(itemp),N,algorithm)
      end do
-     !print*, "Thermalization done at beta = ", beta(itemp)
-     do i = 1, 1000
-        call sweeps(U,L,beta(itemp),2)
-        if( mod(i,10) == 0)then
-           call take_measurements(U,L,beta(itemp),N,2,S)
-           suma_s = suma_s + S
+
+     do i = 1, N_measurements*N_skip
+        call sweeps(U,L,beta(itemp),N,algorithm)
+        if( mod(i,N_skip) == 0)then
+           call take_measurements(U,L,N,d,S%array(itemp))
         end if
      end do
-     write(100,*) beta(itemp), suma_S/100
+
+      call std_err(S%array,S%avr,S%err)
+     write(100,*) beta(itemp), S%avr/(N*L**d), S%err/(N*L**d)
   end do
 
 

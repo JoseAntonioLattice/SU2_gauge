@@ -11,7 +11,8 @@ SOURCE = statistics.f90 periodic_boundary_conditions_mod.f90 parameters.f90 data
 
 OBJECT = $(patsubst %,$(BIN)/%, $(notdir  $(SOURCE:.f90=.o)))
 
-FFLAGS = -J$(BIN) -I$(BIN) -fcheck=all -fbacktrace -O0 -Wall -Wextra -std=f2008
+#FFLAGS = -J$(BIN) -I$(BIN) -fcheck=all -fbacktrace -O0 -Wall -Wextra -std=f2008
+FFLAGS = -J$(BIN) -I$(BIN) -O3 -std=f2008
 
 $(BIN)/$(TARGET): $(OBJECT)
 	$(FC) -o $@ $^

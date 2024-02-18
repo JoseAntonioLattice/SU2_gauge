@@ -51,7 +51,7 @@ contains
 
     det_A = det(A)
     if (det_A <= 0.0_dp)then
-       call create_update(U(x,y)%link(mu))
+       call create_unbiased_update(U(x,y)%link(mu))
        return
     end if
 
@@ -59,10 +59,8 @@ contains
     V%matrix = A%matrix/det_A
 
     call generate_lambdasq(det_A,beta,lambdasq,s)
-
     do while ( s**2 > 1.0_dp - lambdasq)
-       !call generate_lambdasq(det_A,beta,lambdasq,s)
-        call random_number(s)
+       call generate_lambdasq(det_A,beta,lambdasq,s)
     end do
 
     x0 = 1.0_dp - 2*lambdasq
@@ -70,7 +68,8 @@ contains
 
     call random_number(r)
     r = 2*r - 1.0_dp
-    do while ( sum(r**2) > 1.0_dp )
+    !if( (norm2(r))**2 > 1.0_dp) return
+    do while ( (norm2(r))**2 > 1.0_dp )
         call random_number(r)
         r = 2*r - 1.0_dp
     end do
@@ -87,6 +86,29 @@ contains
     U(x,y)%link(mu) = XX * dagger(V)
 
   end subroutine heatbath
+
+
+!  subroutine heatbath2(U,x,y,mu,beta)
+!    type(link_variable), dimension(:,:), intent(inout) :: U
+!    integer(i4), intent(in) :: x, y, mu
+!    real(dp), intent(in) :: beta
+!    type(complex_2x2_matrix) :: V, sigma, hat_sigma
+!    real(dp) :: sqrt_det_sigma, rho, y0, Y, W3
+!
+!    sigma = staples(U,x,y,mu)
+!    sqrt_det_sigma = sqrt(det(sigma))
+!    hat_sigma = sigma/sqrt_det_sigma
+!
+!    rho = beta * sqrt_det_sigma
+!
+!    !y0 = rho * ( 1.0_dp - a(0) )
+!
+!    call random_number(W3)
+!    !do while( 2* W3**2 > 2.0_dp - Y)
+!
+!    !end do
+!
+!  end subroutine heatbath2
 
   subroutine generate_lambdasq(det_A,beta,lambdasq,s)
     real(dp), intent(in) :: det_A,beta
@@ -125,6 +147,24 @@ contains
 
   end subroutine create_update
 
+  subroutine create_unbiased_update(Up)
+    type(complex_2x2_matrix), intent(out) :: Up
+    complex(dp) :: a, b
+    real(dp), dimension(0:3) :: r
+
+    call random_number(r)
+    r = r - 0.5_dp
+    r = r/norm2(r)
+    a = cmplx(r(0),r(1),dp)
+    b = cmplx(r(2),r(3),dp)
+
+    Up%matrix(1,1) = a
+    Up%matrix(1,2) = b
+    Up%matrix(2,1) = -conjg(b)
+    Up%matrix(2,2) =  conjg(a)
+
+  end subroutine create_unbiased_update
+
   pure function sgn(x)
     real(dp), intent(in) :: x
     integer(i4) :: sgn
@@ -148,11 +188,11 @@ contains
     integer(i4) :: nu
     type(complex_2x2_matrix) :: A
 
-    A%matrix = 0.0_dp
+    !A%matrix = 0.0_dp
     do nu = 1, d
       if (mu .ne. nu)then
         A =        U(x,   y )%link(nu)  * U(x,ip(y))%link(mu) * dagger(U(ip(x),   y )%link(nu))  +  &
-            dagger(U(x,im(y))%link(nu)) * U(x,im(y))%link(mu) *        U(ip(x),im(y))%link(nu) + A
+            dagger(U(x,im(y))%link(nu)) * U(x,im(y))%link(mu) *        U(ip(x),im(y))%link(nu)! + A
       end if
     end do
   end function staples
@@ -163,13 +203,13 @@ contains
     type(complex_2x2_matrix), intent(out) :: Up
     real(dp) :: DS
 
-    call create_update(Up)
-
-    Up = Up * U(x,y)%link(mu)
+    call create_unbiased_update(Up)
+    !call create_update(Up); Up = Up * U(x,y)%link(mu)
 
     DS = - real( tr( (Up - U(x,y)%link(mu)) * dagger(staples(U,x,y,mu)) ),dp )
 
   end function DS
+
 
 
 

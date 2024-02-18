@@ -104,15 +104,19 @@ contains
   subroutine create_update(Up)
     type(complex_2x2_matrix), intent(out) :: Up
     complex(dp) :: a, b
-    real(dp), dimension(4) :: r
-    !real(dp), parameter :: eps = 0.01_dp
+    real(dp), dimension(0:3) :: r, x
+    real(dp), parameter :: eps = 0.1_dp
+    real(dp) :: norm_r
 
     call random_number(r)
     r = r - 0.5_dp
-    r = r/norm2(r)
+    norm_r = sqrt(r(1)**2 + r(2)**2 + r(3)**2)
 
-    a = cmplx(r(1),r(2),dp)
-    b = cmplx(r(3),r(4),dp)
+    x(1:3) = eps*r(1:3)/norm_r
+    x(0) = sgn(r(0)) * sqrt(1.0_dp - eps**2)
+
+    a = cmplx(x(0),x(1),dp)
+    b = cmplx(x(2),x(3),dp)
 
     Up%matrix(1,1) = a
     Up%matrix(1,2) = b
@@ -120,6 +124,20 @@ contains
     Up%matrix(2,2) =  conjg(a)
 
   end subroutine create_update
+
+  pure function sgn(x)
+    real(dp), intent(in) :: x
+    integer(i4) :: sgn
+
+    if( x > 0.0_dp )then
+      sgn = 1
+    elseif( x < 0.0_dp)then
+      sgn = -1
+    else
+      sgn = 0
+    end if
+
+  end function sgn
 
   pure function staples(U,x,y,mu) result(A)
     use periodic_boundary_contidions_mod, only : ip, im
@@ -147,7 +165,7 @@ contains
 
     call create_update(Up)
 
-    !Up = Up * U(x,y)%link(mu)
+    Up = Up * U(x,y)%link(mu)
 
     DS = - real( tr( (Up - U(x,y)%link(mu)) * dagger(staples(U,x,y,mu)) ),dp )
 

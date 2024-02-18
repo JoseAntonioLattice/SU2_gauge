@@ -28,8 +28,8 @@ contains
         !  do z = 1, L
         !    do w = 1, L
               do mu = 1, d
-                 !Delta_S = (beta/N) * DS(U,mu,Up,x,y)
-                 Delta_S = DS2(U,x,y,mu,beta/N,d,Up)
+                 Delta_S = (beta/N) * DS(U,mu,Up,x,y)
+                 !Delta_S = DS2(U,x,y,mu,beta/N,d,Up)
                  call metropolis(Delta_S,U(x,y)%link(mu)%matrix,Up%matrix)
         !      end do
         !    end do
@@ -42,8 +42,8 @@ contains
         !  do z = 1, L
         !    do w = 1, L
               do mu = 1, d
-                !Delta_S = (beta/N) * DS(U,mu,Up,x,y)
-                Delta_S = DS2(U,x,y,mu,beta/N,d,Up)
+                Delta_S = (beta/N) * DS(U,mu,Up,x,y)
+                !Delta_S = DS2(U,x,y,mu,beta/N,d,Up)
                 call glauber(Delta_S,U(x,y)%link(mu)%matrix,Up%matrix)
               end do
         !    end do

@@ -41,7 +41,7 @@ contains
     type(complex_2x2_matrix), intent(in) :: A
     real(dp) :: det
 
-    det = real(A%matrix(1,1)*A%matrix(2,2) - A%matrix(1,2)*A%matrix(2,1),dp)
+    det = real(A%matrix(1,1)*A%matrix(2,2) - A%matrix(1,2)*A%matrix(2,1))
 
   end function det
 

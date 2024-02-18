@@ -22,7 +22,8 @@ program main
   print*, "link_variable     = ", u1%link(1)
   print*,tr(u1(1,1)%link(1))
   print*, dagger(u1(1,1)%link(1))
-  print*, u1(1,1)%link(1) * u1(1,2)%link(2)
+  print*, det(u1(1,1)%link(1)), (1.0_dp,1.0_dp) * (4.0_dp,1.0_dp) - (2.0_dp,1.0_dp) * (3.0_dp,1.0_dp)
+  !print*, u1(1,1)%link(1) * u1(1,2)%link(2)
 
 
 end program main

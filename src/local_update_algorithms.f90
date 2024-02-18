@@ -35,14 +35,14 @@ contains
 
   end subroutine glauber
 
-  subroutine heatbath(U,x,y,mu,beta)
+  subroutine heatbath_gattringer(U,x,y,mu,beta)
 
     type(link_variable), dimension(:,:), intent(inout) :: U
     integer(i4), intent(in) :: x, y, mu
     real(dp), intent(in) :: beta
     type(complex_2x2_matrix) :: A, V, XX
     complex(dp) :: c_a, b
-    real(dp) :: det_A
+    real(dp) :: det_A, sqrt_det_A
     real(dp) :: x0, x_vec(3), norm_x
     real(dp) :: r(3), s
     real(dp) :: lambdasq
@@ -55,12 +55,13 @@ contains
        return
     end if
 
-    det_A = sqrt(det_A)
+    sqrt_det_A = sqrt(det_A)
     V%matrix = A%matrix/det_A
 
-    call generate_lambdasq(det_A,beta,lambdasq,s)
+    call generate_lambdasq(sqrt_det_A,beta,lambdasq,s)
     do while ( s**2 > 1.0_dp - lambdasq)
-       call generate_lambdasq(det_A,beta,lambdasq,s)
+       !call generate_lambdasq(det_A,beta,lambdasq,s)
+       CALL random_number(s)
     end do
 
     x0 = 1.0_dp - 2*lambdasq
@@ -82,6 +83,59 @@ contains
     XX%matrix(1,2) = b
     XX%matrix(2,1) = -conjg(b)
     XX%matrix(2,2) =  conjg(c_a)
+
+    U(x,y)%link(mu) = XX * dagger(V)
+
+  end subroutine heatbath_gattringer
+
+
+  subroutine heatbath(U,x,y,mu,beta)
+    type(link_variable), dimension(:,:), intent(inout) :: U
+    integer(i4), intent(in) :: x, y, mu
+    real(dp), intent(in) :: beta
+
+    real(dp) :: det_staple,sqrt_det_staple, a, b, a0, a1, a2, a3, norm_a, theta, phi
+    type(complex_2x2_matrix) :: staple, XX, V
+    logical :: boolean
+    real(dp), parameter :: pi = acos(-1.0_dp)
+    complex(dp) :: c1,c2
+
+
+    staple = staples(U,x,y,mu)
+    det_staple = det(staple)
+    if (det_staple <= 0.0_dp)then
+       call create_unbiased_update(U(x,y)%link(mu))
+       return
+    end if
+    sqrt_det_staple = sqrt(det_staple)
+
+    V%matrix = staple%matrix/sqrt_det_staple
+
+    a = exp(-2*beta*sqrt_det_staple)
+    b = 1.0_dp
+    print*, det_staple, sqrt_det_staple, a
+    boolean = .false.
+    do while( boolean .eqv. .false.)
+      r = random_uniform(a,b)
+      a0 = 1.0_dp + log(r)/(beta * sqrt_det_staple)
+      call random_number(r)
+      if( r > 1.0_dp - sqrt(1.0_dp - a0**2)) boolean = .true.
+    end do
+
+    norm_a = sqrt(1.0_dp - a0**2)
+    theta = random_uniform(0.0_dp, pi)
+    phi = random_uniform(0.0_dp, 2*pi)
+    a1 = norm_a * cos(phi) * sin(theta)
+    a2 = norm_a * sin(phi) * sin(theta)
+    a3 = norm_a * cos(theta)
+
+    c1 = cmplx(a0,a1,dp)
+    c2 = cmplx(a2,a3,dp)
+
+    XX%matrix(1,1) = c1
+    XX%matrix(1,2) = c2
+    XX%matrix(2,1) = -conjg(c2)
+    XX%matrix(2,2) =  conjg(c1)
 
     U(x,y)%link(mu) = XX * dagger(V)
 
@@ -189,12 +243,13 @@ contains
     type(complex_2x2_matrix) :: A
 
     !A%matrix = 0.0_dp
-    do nu = 1, d
-      if (mu .ne. nu)then
-        A =        U(x,   y )%link(nu)  * U(x,ip(y))%link(mu) * dagger(U(ip(x),   y )%link(nu))  +  &
-            dagger(U(x,im(y))%link(nu)) * U(x,im(y))%link(mu) *        U(ip(x),im(y))%link(nu)! + A
-      end if
-    end do
+    if (mu == 1)then
+      A =        U(x,   y )%link(2)  * U(x,ip(y))%link(mu) * dagger(U(ip(x),   y )%link(2))  +  &
+          dagger(U(x,im(y))%link(2)) * U(x,im(y))%link(mu) *        U(ip(x),im(y))%link(2)! + A
+    else if(mu == 2)then
+      A =        U(x,    y)%link(1)  * U(ip(x),y)%link(mu) * dagger(U(   x, ip(y))%link(1))  +  &
+          dagger(U(im(x),y)%link(1)) * U(im(x),y)%link(mu) *        U(im(x),ip(y))%link(1)! + A1
+    end if
   end function staples
 
   function DS(U,mu,Up,x,y)
@@ -211,6 +266,15 @@ contains
   end function DS
 
 
+  function random_uniform(a,b) result(y)
+    real(dp), intent(in) :: a, b
+    real(dp) :: y, r
+
+    call random_number(r)
+
+    y = a + r * ( b - a )
+
+  end function random_uniform
 
 
 end module local_update_algorithms

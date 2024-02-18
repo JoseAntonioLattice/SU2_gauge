@@ -1,9 +1,9 @@
 &input_parameters
-L = 6,
+L = 4,
 N = 2,
 d = 2,
 N_thermalization = 1000,
 N_measurements = 100,
 N_skip = 10,
-algorithm = "glauber"
+algorithm = "heatbath"
 /

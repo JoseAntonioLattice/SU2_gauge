@@ -1,0 +1,47 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\usepackage{dsfont}
+
+\author{José Antonio García Hernández}
+\title{2-dimensional lattice SU(2) gauge field theory}
+\begin{document}
+\maketitle
+\section{Introduction}
+$U \in \text{SU}(2)$.
+
+\begin{equation}
+	U = \begin{pmatrix}
+		a & b \\
+		-b^* & a^*
+	\end{pmatrix}
+\end{equation}
+where $a, \ b \in \mathbb{C}$ and $|a|^2 + |b|^2 = 1$.
+
+
+
+
+Continuum action
+\begin{equation}
+	\label{eq:continuum_action}
+	S[A] = \frac{1}{2g^2} \int d^4x \, \text{Tr} \left[ F_{\mu\nu}(x)F_{\mu\nu}(x)\right].
+\end{equation} 
+
+Plaquette variable
+\begin{equation}
+	U_{\mu\nu}(x) = U_{\mu}(x)U_{\nu}(x+\hat{\mu})U_{\mu}^{\dagger}(x+\hat{\nu})U_{\nu}^{\dagger}(x) 
+\end{equation}
+
+
+Lattice action
+\begin{equation}
+	\label{eq:wilson_action}
+	S[U] = \frac{\beta}{N}\sum_x \sum_{\mu < \nu} \text{Re}\ \text{Tr} \left[\mathds{1} - U_{\mu\nu}(x) \right],
+\end{equation}
+where $\beta = \frac{2N}{g^2}$.
+\end{document}

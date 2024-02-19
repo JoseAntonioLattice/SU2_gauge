@@ -77,6 +77,7 @@ contains
     XX = SU2_matrix(c1,c2)
 
     U(x,y)%link(mu) = XX * V
+    !print*, det(XX), det(V), det(XX * V)
 
   end subroutine heatbath_gattringer
 

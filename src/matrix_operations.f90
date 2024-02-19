@@ -34,7 +34,11 @@ contains
   pure function mat_mult(a,b) result(c)
     type(complex_2x2_matrix), intent(in) :: a, b
     type(complex_2x2_matrix) :: c
-    c%matrix = matmul(a%matrix,b%matrix)
+    !c%matrix = matmul(a%matrix,b%matrix)
+    c%matrix(1,1) = a%matrix(1,1)*b%matrix(1,1) - a%matrix(1,2)*conjg(b%matrix(1,2))
+    c%matrix(1,2) = a%matrix(1,1)*b%matrix(1,2) + a%matrix(1,2)*conjg(b%matrix(1,1))
+    c%matrix(2,1) = -conjg(c%matrix(1,2))
+    c%matrix(2,2) =  conjg(c%matrix(1,1))
   end function mat_mult
 
   pure function det(A)

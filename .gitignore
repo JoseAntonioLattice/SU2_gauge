@@ -1,5 +1,6 @@
 bin
 data
+build
 *.mod
 *.o
 *.exe

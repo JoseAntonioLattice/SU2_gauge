@@ -62,6 +62,19 @@ contains
         !  enddo
         end do
       end do
+    elseif( "heatbath_gattringer" == trim(algorithm))then
+      do x = 1, L
+        do y = 1, L
+        !  do z = 1, L
+        !    do w = 1, L
+              do mu = 1, d
+                 call heatbath_gattringer(U,x,y,mu,beta)
+              end do
+        !    end do
+        !  enddo
+        end do
+      end do
+
     else
       error stop "Not a valid algorithm"
     end if

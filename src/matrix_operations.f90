@@ -39,9 +39,14 @@ contains
 
   pure function det(A)
     type(complex_2x2_matrix), intent(in) :: A
-    real(dp) :: det
+    real(dp) :: det, d1, d2, d3, d4
 
-    det = real(A%matrix(1,1)*A%matrix(2,2) - A%matrix(1,2)*A%matrix(2,1))
+    d1 = A%matrix(1,1)%re
+    d2 = A%matrix(1,1)%im
+    d3 = A%matrix(1,2)%re
+    d4 = A%matrix(1,2)%im
+
+    det = d1*d1 + d2*d2 + d3*d3 + d4*d4
 
   end function det
 

@@ -12,12 +12,44 @@ module dynamics
 
 contains
 
-  subroutine sweeps(U,L,beta,N,d,algorithm)
-
+  subroutine thermalization(U,L,beta,N,d,algorithm,N_thermalization)
     type(link_variable), intent(inout), dimension(:,:) :: U
     integer(i4), intent(in)  :: L, N, d
     real(dp), intent(in) :: beta
-    character(*) :: algorithm
+    character(*), intent(in) :: algorithm
+    integer(i4), intent(in) :: N_thermalization
+
+    integer(i4) :: i
+    
+    do i = 1, N_thermalization
+       call sweeps(U,L,beta,N,d,algorithm)
+    end do
+   end subroutine thermalization
+
+
+   subroutine measurements_sweeps(U,L,beta,N,d,algorithm,N_measurements,N_skip,E_p)
+     type(link_variable), intent(inout), dimension(:,:) :: U
+     integer(i4), intent(in)  :: L, N, d
+     real(dp), intent(in) :: beta
+     character(*), intent(in) :: algorithm
+     integer(i4), intent(in) :: N_measurements, N_skip
+     real(dp), intent(out) :: E_p(:) 
+     integer(i4) :: i
+     
+     do i = 1, N_measurements*N_skip
+        call sweeps(U,L,beta,N,d,algorithm)
+        if( mod(i,N_skip) == 0)then
+           E_p(i/N_skip) = action(U,-1.0_dp/N,d)/(L**d)
+        end if
+     end do
+     
+   end subroutine measurements_sweeps
+  
+  subroutine sweeps(U,L,beta,N,d,algorithm)
+    type(link_variable), intent(inout), dimension(:,:) :: U
+    integer(i4), intent(in)  :: L, N, d
+    real(dp), intent(in) :: beta
+    character(*), intent(in) :: algorithm
     type(complex_2x2_matrix) :: Up
     integer(i4) :: x, y, mu!, z, w
     real(dp) :: Delta_S

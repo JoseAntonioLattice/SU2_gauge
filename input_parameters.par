@@ -2,8 +2,8 @@
 L = 10,
 N = 2,
 d = 2,
-N_thermalization = 1000,
+N_thermalization = 100,
 N_measurements = 100,
 N_skip = 10,
-algorithm = "heatbath"
+algorithm = "metropolis"
 /

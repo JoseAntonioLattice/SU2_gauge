@@ -109,7 +109,7 @@ In the heatbath algorithm we need to generate an update $X\in\text{SU}(2)$
 	dP(X) = \frac{1}{2\pi^2} d\cos\theta\, d\varphi\, dx_0\, \sqrt{1-x_0^2}e^{a\beta x_0}
 \end{equation}
 \begin{enumerate}
-\item We find the sum of staples $\Sigma_{\mu}(x)$ in eq.\ \eqref{eq:staples}, we compute $a = \sqrt{\det \Sigma_{\mu}(x)}$, and set $V = \Sigma_{\mu}(x)/a$
+\item Given some field configuration ata point $x$ and directin $\mu$, we find the sum of staples $\Sigma_{\mu}(x)$ in eq.\ \eqref{eq:staples}, we compute $a = \sqrt{\det \Sigma_{\mu}(x)}$, and set $V = \Sigma_{\mu}(x)/a$
 	\item We generate $X$ as follows:
 	\begin{enumerate}
 	\item	We generate three random numbers $u_i$, $i = 1,\ 2,\ 3$ in the interval [0,1) uniformly distributed and take $r_i = 1 - u_i$. Then
@@ -123,11 +123,11 @@ In the heatbath algorithm we need to generate an update $X\in\text{SU}(2)$
 		where $s$ is a uniformly distributed random number in the interval [0,1).
 	\item Repeat the previous two steps until a value of $\lambda$ is accepted. The accepted value gives $x_0 = 1 - 2\lambda^2$
 	\item We take the norm of the vector $\vec{x} = (x_1,x_2,x_3)$ as $|\vec{x}| = \sqrt{1 - x_0^2}$.
-	\item Now we generate the random vector $\vec{x}$. We take two uniformly distributed random numbers $\varphi\in [0,2\pi)$ and $\theta \in [0,\pi)$ and take
+	\item We take two uniformly distributed random numbers $\varphi\in [0,2\pi)$ and $\theta \in [0,\pi)$ and take
 	\begin{eqnarray}
 		x_1 & = & |\vec{x}| \cos\varphi \sin\theta \\
 		x_2 & = & |\vec{x}| \sin\varphi \sin\theta \\
-		x_3 & = & |\vec{x}| \cos\theta	
+		x_3 & = & |\vec{x}| \cos\theta	.
 	\end{eqnarray}		
 	  
 	\end{enumerate}
@@ -136,6 +136,12 @@ In the heatbath algorithm we need to generate an update $X\in\text{SU}(2)$
 
 
 \section{Results}
+
+We present simulations results at equilibrium for the 2-d SU(2) gauge field theory. We use a square lattice with lenght $L$ volume $L^2$ and periodic boundary conditions in all directions.
+
+
+We begin each simulation with a \textit{hotstart} where all link variables takes on random values.
+In figure \ref{fig:L=10} we show the variable $E_{\text{P}}$ as defined in eq. \eqref{eq:Ep} for several $\beta$-values at a volume where $L=10$.
 
 \begin{figure}
 	\label{fig:L=10}

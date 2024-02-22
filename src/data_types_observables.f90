@@ -10,7 +10,7 @@ module data_types_observables
   end type complex_2x2_matrix
 
   type link_variable
-     type(complex_2x2_matrix), dimension(2) :: link
+     type(complex_2x2_matrix), dimension(3) :: link
   end type link_variable
 
   type observable

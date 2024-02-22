@@ -1,7 +1,7 @@
 &input_parameters
 L = 10,
 N = 2,
-d = 2,
+d = 3,
 N_thermalization = 100,
 N_measurements = 100,
 N_skip = 10,

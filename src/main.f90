@@ -1,7 +1,7 @@
 program main
 
   use iso_fortran_env, only : dp => real64
-  use periodic_boundary_contidions_mod
+  use periodic_boundary_conditions_mod
   use parameters
   use arrays
   use starts
@@ -16,7 +16,7 @@ program main
   call read_input_parameters()
 
   !Allocate variables
-  allocate(U(L,L))
+  allocate(U(L**d))
   allocate(E_p%array(N_measurements))
   call set_periodic_bounds(L)
 

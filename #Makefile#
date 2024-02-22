@@ -11,8 +11,8 @@ SOURCE = statistics.f90 pbc.f90 get_index_mod.f90 parameters.f90 data_types_obse
 
 OBJECT = $(patsubst %,$(BIN)/%, $(notdir  $(SOURCE:.f90=.o)))
 
-FFLAGS = -J$(BIN) -I$(BIN) -fcheck=all -fbacktrace -O0 -Wall -Wextra -std=f2008
-#FFLAGS = -J$(BIN) -I$(BIN) -O3 -std=f2008
+#FFLAGS = -J$(BIN) -I$(BIN) -fcheck=all -fbacktrace -O0 -Wall -Wextra -std=f2008
+FFLAGS = -J$(BIN) -I$(BIN) -O3 -std=f2008
 
 $(BIN)/$(TARGET): $(OBJECT)
 	$(FC) -o $@ $^

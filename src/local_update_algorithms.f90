@@ -3,7 +3,11 @@ module local_update_algorithms
   use data_types_observables
   use matrix_operations
   use iso_fortran_env, only : dp => real64, i4 => int32
-
+  use periodic_boundary_conditions_mod, only : ip_func, im_func
+  use get_index_mod
+  
+  implicit none
+  
 contains
 
   subroutine metropolis(Delta_S,U,Up)
@@ -35,10 +39,10 @@ contains
 
   end subroutine glauber
 
-  subroutine heatbath_gattringer(U,x,y,mu,beta)
+  subroutine heatbath_gattringer(U,x,mu,beta)
 
-    type(link_variable), dimension(:,:), intent(inout) :: U
-    integer(i4), intent(in) :: x, y, mu
+    type(link_variable), dimension(:), intent(inout) :: U
+    integer(i4), intent(in) :: x, mu
     real(dp), intent(in) :: beta
     type(complex_2x2_matrix) :: A, V, XX
     complex(dp) :: c_a, b
@@ -50,11 +54,11 @@ contains
     complex(dp) :: c1,c2, det_staple_complex
     real(dp) :: d1, d2, d3, d4
 
-    A = staples(U,x,y,mu)
+    A = staples(U,x,mu)
 
     det_A = det(A)
     if (det_A <= 0.0_dp)then
-       call create_unbiased_update(U(x,y)%link(mu))
+       call create_unbiased_update(U(x)%link(mu))
        return
     end if
 
@@ -76,15 +80,15 @@ contains
 
     XX = SU2_matrix(c1,c2)
 
-    U(x,y)%link(mu) = XX * V
+    U(x)%link(mu) = XX * V
     !print*, det(XX), det(V), det(XX * V)
 
   end subroutine heatbath_gattringer
 
 
-  subroutine heatbath(U,x,y,mu,beta)
-    type(link_variable), dimension(:,:), intent(inout) :: U
-    integer(i4), intent(in) :: x, y, mu
+  subroutine heatbath(U,x,mu,beta)
+    type(link_variable), dimension(:), intent(inout) :: U
+    integer(i4), intent(in) :: x, mu
     real(dp), intent(in) :: beta
 
     real(dp) :: a, b, a0, a_vec(3), norm_a
@@ -92,9 +96,9 @@ contains
     logical :: boolean
 
     complex(dp) :: c1,c2
-    real(dp) :: det_staple, sqrt_det_staple, d1, d2, d3, d4
+    real(dp) :: det_staple, sqrt_det_staple, d1, d2, d3, d4,r
 
-    staple = staples(U,x,y,mu)
+    staple = staples(U,x,mu)
     det_staple = det(staple)
     sqrt_det_staple = sqrt(det_staple)
     V%matrix = staple%matrix/sqrt_det_staple
@@ -119,7 +123,7 @@ contains
 
     XX = SU2_matrix(c1,c2)
 
-    U(x,y)%link(mu) = XX * V
+    U(x)%link(mu) = XX * V
 
   end subroutine heatbath
 
@@ -209,41 +213,44 @@ contains
 
   end function sgn
 
-  function staples(U,x,y,mu) result(A)
-    use periodic_boundary_contidions_mod, only : ip, im
-    use parameters, only : d
+  function staples(U,x,mu) result(A)
+   
+    use parameters, only : L, d
 
-    type(link_variable), dimension(:,:), intent(in) :: U
-    integer(i4), intent(in) :: x, y, mu
+    type(link_variable), dimension(:), intent(in) :: U
+    integer(i4), intent(in) :: x, mu
     integer(i4) :: nu
     type(complex_2x2_matrix) :: A
 
-    !A%matrix = 0.0_dp
-    if (mu == 1)then
-      A =        U(x,   y )%link(2)  * U(x,ip(y))%link(mu) * dagger(U(ip(x),   y )%link(2))  +  &
-          dagger(U(x,im(y))%link(2)) * U(x,im(y))%link(mu) *        U(ip(x),im(y))%link(2)! + A
-    else if(mu == 2)then
-      A =        U(x,    y)%link(1)  * U(ip(x),y)%link(mu) * dagger(U(   x, ip(y))%link(1))  +  &
-          dagger(U(im(x),y)%link(1)) * U(im(x),y)%link(mu) *        U(im(x),ip(y))%link(1)! + A1
-    end if
+    integer(i4) :: ipx_mu, ipx_nu, imx_nu, ipx_mu_imx_nu
+    
+    A%matrix = 0.0_dp
+    do nu = 1, d
+       if(nu .ne. mu)then
+          !print*, "inside staples", x, get_index_array(x,d,L), &
+          !     ip_func(get_index_array(x,d,L),mu), ip_func(get_index_array(x,d,L),nu)
+          ipx_mu = get_index(ip_func(get_index_array(x,d,L),mu),d,L)
+          ipx_nu = get_index(ip_func(get_index_array(x,d,L),nu),d,L)
+          imx_nu = get_index(im_func(get_index_array(x,d,L),nu),d,L)
+          ipx_mu_imx_nu = get_index(ip_func(get_index_array(imx_nu,d,L),mu),d,L)
+           
+          
+          A = A +    U(   x  )%link(nu)  * U(ipx_nu)%link(mu) * dagger(U(ipx_mu       )%link(nu)) +  &
+              dagger(U(imx_nu)%link(nu)) * U(imx_nu)%link(mu) *        U(ipx_mu_imx_nu)%link(nu)
+       end if
+    end do
+    end function staples
 
-   !     print*, " "
-   ! do i = 1, 2
-   !     print*, ( A%matrix(i,j), j = 1, 2)
-   ! end do
-
-  end function staples
-
-  function DS(U,mu,Up,x,y)
-    type(link_variable), dimension(:,:), intent(in) :: U
-    integer(i4), intent(in) :: x, y, mu
+  function DS(U,mu,Up,x)
+    type(link_variable), dimension(:), intent(in) :: U
+    integer(i4), intent(in) :: x, mu
     type(complex_2x2_matrix), intent(out) :: Up
     real(dp) :: DS
 
     call create_unbiased_update(Up)
     !call create_update(Up); Up = Up * U(x,y)%link(mu)
 
-    DS = - real( tr( (Up - U(x,y)%link(mu)) * dagger(staples(U,x,y,mu)) ),dp )
+    DS = - real( tr( (Up - U(x)%link(mu)) * dagger(staples(U,x,mu)) ) )
 
   end function DS
 

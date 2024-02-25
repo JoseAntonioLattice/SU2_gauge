@@ -1,17 +1,17 @@
 module get_index_mod
 
-  implicit none 
-  
+  implicit none
+
 contains
 
   function get_index(vector,dimension_space,length_lattice)
 
     integer :: get_index
-    
+
     integer, dimension(:), intent(in) :: vector
     integer, intent(in) :: dimension_space
     integer, intent(in) :: length_lattice
-    
+
     integer :: suma
     integer :: i
 
@@ -30,25 +30,29 @@ contains
   end function get_index
 
 
-  function get_index_array(idx,d,L)
+  function get_index_array(idx,d,L) result(vector)
 
     integer, intent(in) :: idx
     integer, intent(in) :: d
     integer, intent(in) :: L
-    
-    integer, dimension(d) :: get_index_array
-    
-    integer :: i, n
-    
-    get_index_array(1) = mod(idx,L) 
-    if(mod(idx,L) == 0) get_index_array(1) = L 
-    
+
+    integer, dimension(d) :: vector
+
+    integer :: i, n, modx, suma
+
+    modx = mod(idx,L)
+    vector(1) = modx
+    if(modx == 0) vector(1) = L
+
+    suma = vector(1)
     do i = 2, d
-       get_index_array(i) =  idx/L**(d-1) + 1
-       if(mod(idx,L) == 0) get_index_array(i) =  idx/L**(d-1) 
+      modx = mod(idx,L**i)
+      if (i > 2) suma = suma + L**(i-2)*(vector(i-1)-1)
+      vector(i) = (modx - suma)/L**(i-1) + 1
+      if(modx == 0) vector(i) = L
     end do
-    
+
   end function get_index_array
-  
-  
+
+
 end module get_index_mod

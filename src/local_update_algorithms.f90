@@ -5,9 +5,9 @@ module local_update_algorithms
   use iso_fortran_env, only : dp => real64, i4 => int32
   use periodic_boundary_conditions_mod, only : ip_func, im_func
   use get_index_mod
-  
+
   implicit none
-  
+
 contains
 
   subroutine metropolis(Delta_S,U,Up)
@@ -214,7 +214,7 @@ contains
   end function sgn
 
   function staples(U,x,mu) result(A)
-   
+
     use parameters, only : L, d
 
     type(link_variable), dimension(:), intent(in) :: U
@@ -223,18 +223,19 @@ contains
     type(complex_2x2_matrix) :: A
 
     integer(i4) :: ipx_mu, ipx_nu, imx_nu, ipx_mu_imx_nu
-    
+
     A%matrix = 0.0_dp
     do nu = 1, d
        if(nu .ne. mu)then
-          !print*, "inside staples", x, get_index_array(x,d,L), &
-          !     ip_func(get_index_array(x,d,L),mu), ip_func(get_index_array(x,d,L),nu)
+          !print*, "inside staples", "mu=",mu,"nu=",nu,x, get_index_array(x,d,L), &
+          !     ip_func(get_index_array(x,d,L),mu), ip_func(get_index_array(x,d,L),nu), im_func(get_index_array(x,d,L),nu)
           ipx_mu = get_index(ip_func(get_index_array(x,d,L),mu),d,L)
           ipx_nu = get_index(ip_func(get_index_array(x,d,L),nu),d,L)
           imx_nu = get_index(im_func(get_index_array(x,d,L),nu),d,L)
-          ipx_mu_imx_nu = get_index(ip_func(get_index_array(imx_nu,d,L),mu),d,L)
-           
-          
+          !print*, 'imx_nu',imx_nu, get_index_array(imx_nu,d,L)
+   ipx_mu_imx_nu = get_index(ip_func(get_index_array(imx_nu,d,L),mu),d,L)
+          !print*, "before computing staples"
+
           A = A +    U(   x  )%link(nu)  * U(ipx_nu)%link(mu) * dagger(U(ipx_mu       )%link(nu)) +  &
               dagger(U(imx_nu)%link(nu)) * U(imx_nu)%link(mu) *        U(ipx_mu_imx_nu)%link(nu)
        end if

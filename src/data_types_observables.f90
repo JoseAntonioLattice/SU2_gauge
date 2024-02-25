@@ -10,7 +10,7 @@ module data_types_observables
   end type complex_2x2_matrix
 
   type link_variable
-     type(complex_2x2_matrix), dimension(3) :: link
+     type(complex_2x2_matrix), dimension(4) :: link
   end type link_variable
 
   type observable
@@ -19,11 +19,11 @@ module data_types_observables
      real(dp) :: err
   end type observable
 
- 
+
   type(observable) :: E_p
   real(dp), allocatable, dimension(:) :: beta
 
-  
+
   private
   public :: link_variable, complex_2x2_matrix, beta, E_p
 

@@ -1,9 +1,9 @@
 &input_parameters
-L = 10,
+L = 6,
 N = 2,
-d = 3,
+d = 4,
 N_thermalization = 100,
 N_measurements = 100,
 N_skip = 10,
-algorithm = "metropolis"
+algorithm = "heatbath_gattringer"
 /

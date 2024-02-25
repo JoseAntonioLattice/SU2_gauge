@@ -3,7 +3,7 @@ FC = gfortran
 SRC=src
 BIN=bin
 
-TARGET = SU2_gauge.exe
+TARGET = SU2_gauge_2.exe
 
 
 

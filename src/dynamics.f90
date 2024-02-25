@@ -6,7 +6,7 @@ module dynamics
   use local_update_algorithms
   use periodic_boundary_conditions_mod
   use get_index_mod
-  
+
   implicit none
 
   !private !:: dp, i4, link_variable
@@ -22,7 +22,7 @@ contains
     integer(i4), intent(in) :: N_thermalization
 
     integer(i4) :: i
-    
+
     do i = 1, N_thermalization
        call sweeps(U,L,beta,N,d,algorithm)
     end do
@@ -35,18 +35,18 @@ contains
      real(dp), intent(in) :: beta
      character(*), intent(in) :: algorithm
      integer(i4), intent(in) :: N_measurements, N_skip
-     real(dp), intent(out) :: E_p(:) 
+     real(dp), intent(out) :: E_p(:)
      integer(i4) :: i
-     
+
      do i = 1, N_measurements*N_skip
         call sweeps(U,L,beta,N,d,algorithm)
         if( mod(i,N_skip) == 0)then
            E_p(i/N_skip) = action(U,-1.0_dp/N,d)/(L**d)
         end if
      end do
-     
+
    end subroutine measurements_sweeps
-  
+
   subroutine sweeps(U,L,beta,N,d,algorithm)
     type(link_variable), intent(inout), dimension(:) :: U
     integer(i4), intent(in)  :: L, N, d
@@ -60,11 +60,12 @@ contains
        do mu = 1, d
           Delta_S = (beta/N) * DS(U,mu,Up,x)
           !Delta_S = DS2(U,x,y,mu,beta/N,d,Up)
-          !print*, "Inside sweeps"
+          !print*, "Inside sweeps", x, mu, Delta_S
           call metropolis(Delta_S,U(x)%link(mu)%matrix,Up%matrix)
-       enddo
+          !print*, "after metropolis"
+       end do
     end do
-   
+
 
   end subroutine sweeps
 

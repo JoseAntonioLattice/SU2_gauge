@@ -14,10 +14,10 @@ contains
     use data_types_observables, only : link_variable
     type(link_variable), intent(out), dimension(:) :: U
     integer(i4) :: L,x,mu!,z,w
-    
+
     L = size(U)
 
-    do x = 1, L**d
+    do x = 1, L
        do mu = 1, 3
           U(x)%link(mu)%matrix = reshape([1.0_dp,0.0_dp,0.0_dp,1.0_dp], [2,2])
        end do
@@ -28,13 +28,13 @@ contains
   subroutine hot_start(U)
     use data_types_observables, only : link_variable
     type(link_variable), intent(out), dimension(:) :: U
-    integer(i4) :: L,x,mu!,z,w
+    integer(i4) :: V,x,mu!,z,w
     real(dp) :: r(4)
     complex(dp) :: a, b
 
-    L = size(U)
+    V = size(U)
 
-    do x = 1, L
+    do x = 1, V
        do mu = 1, 3
           call  random_number(r)
           r = r - 0.5_dp

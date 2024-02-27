@@ -97,7 +97,7 @@ contains
     type(link_variable), dimension(:), intent(in) :: U
     integer(i4), intent(in) ::  d
     real(dp) :: action, beta_N
-    integer(i4) :: x, V, mu,nu
+    integer(i4) :: x, V, mu,nu, number_of_planes
 
     V = size(U)
     action = 0.0_dp
@@ -110,7 +110,8 @@ contains
        end do
     end do
     !print*, "Inside action. outside loop"
-    action =  - beta_N * action
+    number_of_planes = d*(d-1)/2
+    action =  - beta_N * action/number_of_planes
   end function action
 
   !subroutine gauge_transformation(U)

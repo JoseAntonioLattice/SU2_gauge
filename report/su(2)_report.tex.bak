@@ -10,7 +10,7 @@
 \usepackage{dsfont}
 
 \author{José Antonio García Hernández}
-\title{2-dimensional lattice SU(2) gauge field theory}
+\title{$n$-dimensional lattice SU(2) gauge field theory}
 \begin{document}
 \maketitle
 \section{Introduction}
@@ -137,10 +137,12 @@ In the heatbath algorithm we need to generate an update $X\in\text{SU}(2)$
 
 \section{Results}
 
-We present simulations results at equilibrium for the 2-d SU(2) gauge field theory. We use a square lattice with lenght $L$ volume $L^2$ and periodic boundary conditions in all directions.
+We present simulations results at equilibrium for the 2-d and 4-d SU(2) gauge field theory. We use a hypercubic lattice lattice with lenght $L$ volume $L^d$ and periodic boundary conditions in all directions.
 
 
 We begin each simulation with a \textit{hotstart} where all link variables takes on random values.
+
+\subsection{$d=2$}
 In figure \ref{fig:L=10} we show the variable $E_{\text{P}}$ as defined in eq. \eqref{eq:Ep} for several $\beta$-values at a volume where $L=10$.
 
 \begin{figure}
@@ -150,8 +152,36 @@ In figure \ref{fig:L=10} we show the variable $E_{\text{P}}$ as defined in eq. \
 \end{figure}
 
 
+
+\subsection{$d=4$}
+In figure \ref{fig:d=4_L=4} we show simulations results for $d = 4$ using an hypercubic lattice of length $L=4$ with three differente algorithms. 
+ 
+	\begin{figure}
+	\label{fig:d=4_L=4}
+	\begin{center}
+	\includegraphics[scale=0.7]{../images/L=4_metropolis_glauber_heatbath.pdf}
+	\caption{Average plaquette $E_{\text{P}}$ vs.\ $\beta=\frac{4}{g^2}$ in the four dimensional SU(2) lattice gauge theory. We used a cubic lattice of volume $V=4^4$. We used three different algorithms. We reproduce the results of figure 4 from \cite{creutz}.}
+	\end{center}
+	\end{figure}
+
+
+\subsection{$d=6$}
+In figure \ref{fig:d=6_L=3} we show simulations results for $d = 6$ using an hypercubic lattice of length $L=3$ with three differente algorithms. 
+ 
+	\begin{figure}
+	\label{fig:d=6_L=3}
+	\begin{center}
+	\includegraphics[scale=0.7]{../images/d=6_L=3_metropolis.pdf}
+	\caption{Average plaquette $E_{\text{P}}$ vs.\ $\beta=\frac{4}{g^2}$ in the six dimensional SU(2) lattice gauge theory. We used a hyper cubic lattice of volume $V=3^6$.}
+	\end{center}
+	\end{figure}
+
+
 \section{Acknowledgements}
-The author thanks Dr.\ Wolfgang Bientholz for funding (in the form of meals) this research.
+The author thanks Dr.\ Wolfgang Bienteholz for funding (in the form of meals) this research.
+
+
+
 
 \begin{thebibliography}{99}
 
@@ -173,6 +203,8 @@ J.\ Chem.\ Phys.\ {\bf 21} (1953) 1087.
   Informal Notes. Universidad Nacional Autónoma de México, 2015.  
   
 \bibitem{ricker} \url{https://github.com/alfredricker/LQCD}
+
+\bibitem{creutz} M. Creutz, \emph{Monte Carlo Study of the quantized SU(2) gauge theory.} Phys.\ Rev.\ D {\bf 21} (1980) 2038-2035.
 
 \end{thebibliography}
 	
